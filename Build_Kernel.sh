@@ -79,21 +79,36 @@ sudo apt install -y python3 git curl
 sudo apt install -y python3 git curl ccache
 sudo apt install  -y zip
 
-#下载repo并移动至bin目录给予权限
-info "下载repo并给予权限"
-curl https://storage.googleapis.com/git-repo-downloads/repo > $HOME/build_oneplus_sm8750/repo
-chmod a+x $HOME/build_oneplus_sm8750/repo
-sudo mv $HOME/build_oneplus_sm8750/repo /usr/local/bin/repo
+#!/bin/bash
 
-#创建内核工作目录并克隆源码
-info "正在创建工作目录并拉取源码"
-mkdir build_kernel && cd build_kernel
-repo init -u https://github.com/showdo/kernel_manifest.git -b refs/heads/oneplus/sm8750 -m ${XML_FEIL}.xml --depth=1
-#同步内核源码
+# 更新系统并安装依赖
+info "更新系统并安装依赖..."
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y python3 git curl ccache
+
+# 恢复 ccache
+info "恢复 ccache..."
+mkdir -p $HOME/.ccache
+ccache --restore
+
+# 安装 repo 工具
+info "安装 repo 工具..."
+cd
+curl https://storage.googleapis.com/git-repo-downloads/repo > $HOME/repo
+chmod a+x $HOME/repo
+sudo mv $HOME/repo /usr/local/bin/repo
+
+# 初始化 repo 并同步
+info "初始化 repo 并同步..."
+mkdir -p build_kernel
+cd build_kernel
+repo init -u https://github.com/JiuGeFaCai/kernel_manifest.git -b refs/heads/oneplus/sm8750 -m ${XML_FEIL}.xml --depth=1
 repo --trace sync -c -j$(nproc --all) --no-tags
-#删除ABI保护符
-rm kernel_platform/common/android/abi_gki_protected_exports_* || info "No File"
-rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || info "No File"
+
+# 删除不需要的导出文件
+info "删除非必要的导出文件..."
+rm -f kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
+rm -f kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
 
 #拉取SukiSU源码并设置版本号
 info "开始拉取SukiSU并写入版本"
