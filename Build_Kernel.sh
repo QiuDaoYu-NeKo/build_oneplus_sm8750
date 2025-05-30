@@ -87,16 +87,17 @@ sudo apt update && sudo apt upgrade -y
 sudo apt install -y python3 git curl ccache
 
 # 恢复 ccache
-info "恢复 ccache..."
+info "显示 ccache 状态..."
 mkdir -p $HOME/.ccache
-ccache --restore
+ccache -s
+info "清除ccache缓存..."
+# 清空缓存
+ccache -C
 
 # 安装 repo 工具
 info "安装 repo 工具..."
-cd
-curl https://storage.googleapis.com/git-repo-downloads/repo > $HOME/repo
-chmod a+x $HOME/repo
-sudo mv $HOME/repo /usr/local/bin/repo
+curl -o /usr/local/bin/repo https://storage.googleapis.com/git-repo-downloads/repo
+sudo chmod a+x /usr/local/bin/repo
 
 # 初始化 repo 并同步
 info "初始化 repo 并同步..."
